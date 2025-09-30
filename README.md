@@ -11,4 +11,4 @@ This is a personality diagnosis site based on **Seichu-jutsu**,
 a hybrid fortune-telling method that combines Western astrology and the Four Pillars of Destiny.  
 By entering your date of birth, you can see key personality cards derived from your Sun sign, Moon sign, and Year Pillar.  
 ## 公開ページ
-👉 [星柱術 性格診断サイト](https://hoshichu-jutsu.github.io/seichu-jutsu/)
+👉 [星柱術 性格診断サイト](https://seichu-jutsu.github.io/seichu-jutsu/)
