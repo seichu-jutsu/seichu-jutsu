@@ -3,65 +3,95 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>星柱術｜性格診断MVP（要点カード）</title>
+<title>星柱術｜性格診断（MVP）</title>
+<meta name="description" content="西洋占星術×四柱推命のハイブリッド占術『星柱術』の性格診断。生年月日を入れるだけで要点カードを表示。" />
+<!-- OGP / Twitter Card -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="星柱術｜性格診断（MVP）" />
+<meta property="og:description" content="西洋占星術×四柱推命のハイブリッド占術『星柱術』の性格診断。生年月日を入れるだけで要点カードを表示。" />
+<meta property="og:url" content="https://hoshichu-jutsu.github.io/seichu-jutsu/" />
+<meta property="og:image" content="https://hoshichu-jutsu.github.io/seichu-jutsu/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
 <style>
-  :root{--accent:#ff7a00;--fg:#222;--muted:#6b7280;--card:#ffffff;--line:#eee}
-  html,body{margin:0;background:#fff;color:var(--fg);font-family:system-ui,-apple-system,"SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
-  header{padding:20px 16px;border-bottom:1px solid var(--line);}
-  h1{margin:0;font-size:20px}
-  main{max-width:960px;margin:24px auto;padding:0 16px 64px}
-  .card{border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;background:var(--card);box-shadow:0 6px 20px rgba(0,0,0,.04);margin:12px 0}
+  :root{
+    --accent:#ff7a00; --accent-2:#ffcc99;
+    --fg:#1f2937; --muted:#6b7280; --line:#e5e7eb; --card:#ffffff;
+    --bg:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --fg:#e5e7eb; --muted:#9ca3af; --line:#374151; --card:#111827; --bg:#0b0f16; }
+  }
+  [data-theme="dark"]{ --fg:#e5e7eb; --muted:#9ca3af; --line:#374151; --card:#111827; --bg:#0b0f16; }
+  html,body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;line-height:1.6}
+  header{position:sticky;top:0;backdrop-filter:saturate(180%) blur(8px);background:color-mix(in srgb,var(--bg) 80%, transparent);border-bottom:1px solid var(--line);padding:14px 16px;z-index:10}
+  .bar{max-width:1000px;margin:0 auto;display:flex;gap:12px;align-items:center;justify-content:space-between}
+  .brand{display:flex;gap:10px;align-items:center}
+  .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#ffa74d);box-shadow:0 4px 14px rgba(0,0,0,.15)}
+  .title{margin:0;font-size:18px;font-weight:800}
+  .actions{display:flex;gap:8px}
+  .icon-btn{border:1px solid var(--line);background:var(--card);color:var(--fg);padding:8px 10px;border-radius:10px;cursor:pointer}
+  main{max-width:1000px;margin:20px auto 80px;padding:0 16px}
+  .card{border:1px solid var(--line);border-radius:16px;padding:18px;background:var(--card);box-shadow:0 10px 30px rgba(0,0,0,.06);margin:12px 0}
   .grid{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:760px){.grid{grid-template-columns:1fr 1fr}}
-  label{font-size:12px;color:#555;display:block;margin:0 0 6px}
-  input,select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:14px}
-  button{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  .tag{display:inline-block;background:#fff3eb;color:#b44700;border:1px solid #ffd9bf;border-radius:999px;padding:4px 10px;font-size:12px;margin:0 6px 6px 0}
-  h2{margin:.2em 0 .6em}
+  @media(min-width:760px){.grid{grid-template-columns:repeat(4,1fr)}}
+  label{font-size:12px;color:var(--muted);display:block;margin:0 0 6px}
+  input{width:100%;padding:12px 14px;border:1px solid var(--line);border-radius:12px;font-size:14px;background:var(--bg);color:var(--fg)}
+  input:focus{outline:3px solid color-mix(in srgb,var(--accent) 30%, transparent);border-color:var(--accent)}
+  .btn{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:14px 18px;font-weight:800;cursor:pointer}
+  .btn.secondary{background:transparent;color:var(--fg);border:1px solid var(--line)}
+  .inline{display:flex;gap:8px;flex-wrap:wrap}
   .kicker{color:var(--muted);font-size:12px;margin-bottom:8px}
-  .pill{display:inline-block;background:#f5f5f5;border-radius:999px;padding:6px 12px;font-size:12px;margin:0 6px 8px 0}
-  .muted{color:var(--muted)}
-  .hl{color:var(--accent);font-weight:700}
+  .h2{font-size:18px;font-weight:800;margin:.2em 0 .6em}
+  .tag{display:inline-block;background:color-mix(in srgb,var(--accent-2) 30%, transparent);color:var(--fg);border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:12px;margin:0 6px 6px 0}
+  .pill{display:inline-block;background:color-mix(in srgb,#999 10%, transparent);border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:12px;margin:0 6px 8px 0}
   .cards{display:grid;grid-template-columns:1fr;gap:12px}
-  @media(min-width:880px){.cards{grid-template-columns:1fr 1fr 1fr}}
-  .bullet{margin:6px 0;padding-left:18px}
+  @media(min-width:900px){.cards{grid-template-columns:1fr 1fr 1fr}}
+  .bullet{margin:8px 0 0;padding-left:18px}
   .bullet li{margin:6px 0}
-  .warn{background:#fff8e6;border-left:4px solid #ffcc66;padding:10px 12px;border-radius:8px}
-  footer{padding:24px 16px;border-top:1px solid var(--line);color:#777;font-size:12px;text-align:center}
+  .warn{background:color-mix(in srgb,#ffcc66 20%, transparent);border-left:4px solid #ffcc66;padding:10px 12px;border-radius:8px}
+  .share{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  .share-btn{background:#0ea5e9;color:#fff;padding:10px 14px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:14px}
+  .copy-btn{background:#111827;color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 14px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-6px)}
 </style>
 </head>
 <body>
 <header>
-  <h1>星柱術｜性格診断MVP（要点カード）</h1>
+  <div class="bar">
+    <div class="brand"><div class="logo" aria-hidden="true"></div><p class="title">星柱術｜性格診断（MVP）</p></div>
+    <div class="actions">
+      <button id="themeBtn" class="icon-btn" aria-label="テーマ切替">🌓</button>
+    </div>
+  </div>
 </header>
 <main>
   <div class="card">
     <div class="kicker">入力</div>
-    <div class="grid">
+    <div class="grid" style="align-items:end">
       <div>
-        <label>生年月日</label>
+        <label for="birthDate">生年月日</label>
         <input type="date" id="birthDate" />
       </div>
       <div>
-        <label>出生時間（任意）</label>
+        <label for="birthTime">出生時間（任意）</label>
         <input type="time" id="birthTime" />
       </div>
       <div>
-        <label>出生地（任意・表示用）</label>
+        <label for="birthPlace">出生地（任意・表示用）</label>
         <input type="text" id="birthPlace" placeholder="例：広島県" />
       </div>
-      <div>
-        <label>&nbsp;</label>
-        <button id="calcBtn">性格診断を生成</button>
+      <div class="inline">
+        <button id="calcBtn" class="btn">性格診断を生成</button>
+        <button id="resetBtn" class="btn secondary">リセット</button>
       </div>
     </div>
-    <p class="muted" style="margin-top:8px">※MVP簡易版：太陽星座（西洋）＋月星座（簡易）＋年柱（四柱）で性格の要点カードを表示します。後日、月柱・日柱・金星・火星などを追加予定。</p>
+    <p class="kicker" style="margin-top:8px">※MVP簡易版：太陽星座（西洋）＋月星座（簡易）＋年柱（四柱）で要点カードを表示。精密版では月柱・日柱・金星・火星ほかを追加予定。</p>
   </div>
 
   <div id="result" class="card" style="display:none">
     <div class="kicker">結果</div>
-    <h2>概要</h2>
+    <div class="h2">概要</div>
     <div id="summary"></div>
 
     <div class="cards" style="margin-top:12px">
@@ -80,16 +110,25 @@
     </div>
 
     <div class="warn" style="margin-top:16px">
-      <strong>ご注意：</strong> 本MVPは簡易ロジックです。月星座は日付レンジによる大まかな推定で、実際の月の移動速度により誤差が出ることがあります。出生時間が分かれば今後の精密版で大幅に精度向上します。
+      <strong>ご注意：</strong> 本MVPは簡易ロジックです。月星座は日付レンジによる推定のため誤差が出ることがあります。出生時間が分かれば精密版で大幅に向上します。
+    </div>
+
+    <div class="share">
+      <a href="#" id="shareBtn" class="share-btn">🔗 X（Twitter）で共有</a>
+      <button id="copyBtn" class="copy-btn">📋 テキストをコピー</button>
     </div>
   </div>
 </main>
-
-<footer>
-  © 星柱術 — 性格診断MVP（要点カード）。今後、四柱の月柱/日柱・金星/火星・大運/トランジットを順次拡張予定。
-</footer>
+<div id="toast" class="toast" role="status" aria-live="polite">コピーしました</div>
 
 <script>
+  // ===== テーマ切替
+  const root = document.documentElement;
+  document.getElementById('themeBtn').addEventListener('click',()=>{
+    if(root.getAttribute('data-theme')==='dark') root.removeAttribute('data-theme');
+    else root.setAttribute('data-theme','dark');
+  });
+
   // ===== 西洋：太陽星座（一般的な日付範囲）
   const sunSigns = [
     {name:"牡羊座", from:"03-21", to:"04-19", element:"火"},
@@ -123,12 +162,10 @@
     return null;
   }
 
-  // ===== 西洋：月星座（簡易・おおよその境界日）
-  // 参考用の概算テーブル（年次差は未反映）—MVP用
+  // ===== 西洋：月星座（簡易推定）
   const moonRanges = [
     {name:"牡羊座", ranges:[["01-01","01-02"],["01-28","01-30"],["02-24","02-26"],["03-23","03-25"],["04-19","04-21"],["05-16","05-18"],["06-12","06-14"],["07-09","07-11"],["08-05","08-07"],["09-01","09-03"],["09-28","09-30"],["10-25","10-27"],["11-21","11-23"],["12-18","12-20"]]},
     {name:"牡牛座", ranges:[["01-02","01-04"],["01-30","02-01"],["02-26","02-28"],["03-25","03-27"],["04-21","04-23"],["05-18","05-20"],["06-14","06-16"],["07-11","07-13"],["08-07","08-09"],["09-03","09-05"],["09-30","10-02"],["10-27","10-29"],["11-23","11-25"],["12-20","12-22"]]},
-    // 以降はダミー的に周期を並べる（MVP用）。精密版で置換予定。
     {name:"双子座", ranges:[["01-04","01-06"],["02-01","02-03"],["02-28","03-01"],["03-27","03-29"],["04-23","04-25"],["05-20","05-22"],["06-16","06-18"],["07-13","07-15"],["08-09","08-11"],["09-05","09-07"],["10-02","10-04"],["10-29","10-31"],["11-25","11-27"],["12-22","12-24"]]},
     {name:"蟹座",   ranges:[["01-06","01-08"],["02-03","02-05"],["03-01","03-03"],["03-29","03-31"],["04-25","04-27"],["05-22","05-24"],["06-18","06-20"],["07-15","07-17"],["08-11","08-13"],["09-07","09-09"],["10-04","10-06"],["10-31","11-02"],["11-27","11-29"],["12-24","12-26"]]},
     {name:"獅子座", ranges:[["01-08","01-10"],["02-05","02-07"],["03-03","03-05"],["03-31","04-02"],["04-27","04-29"],["05-24","05-26"],["06-20","06-22"],["07-17","07-19"],["08-13","08-15"],["09-09","09-11"],["10-06","10-08"],["11-02","11-04"],["11-29","12-01"],["12-26","12-28"]]},
@@ -164,7 +201,7 @@
     return { stem, branch, label: stem + branch, element: stemElement[stem] };
   }
 
-  // ===== 要点コメント生成
+  // ===== 要点カード生成
   function westernCards(sun, moonName){
     const e = sun?.element || "—";
     const sunLine = `🌞 太陽：<span class="hl">${sun?sun.name:"不明"}</span>（エレメント：${e}）`;
@@ -178,34 +215,20 @@
       <p>${sunLine}<br>${moonLine}</p>
       <ul class="bullet">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
   }
-
   function easternCards(gy){
     const line1 = `📅 年柱：<span class="hl">${gy.label}</span>（五行：${gy.element}）`;
-    const tips = {
-      "木":"成長・発展・学びが鍵",
-      "火":"情熱・表現・自己主張が鍵",
-      "土":"安定・調整・継続力が鍵",
-      "金":"規律・審美眼・洗練が鍵",
-      "水":"柔軟・直感・研究が鍵"
-    }[gy.element] || "バランスよく要素を活かす";
-    return `<div class="pill">四柱：社会的キャラ（年柱）</div>
-      <p>${line1}</p>
-      <ul class="bullet"><li>${tips}</li></ul>`;
+    const tips = {"木":"成長・発展・学びが鍵","火":"情熱・表現・自己主張が鍵","土":"安定・調整・継続力が鍵","金":"規律・審美眼・洗練が鍵","水":"柔軟・直感・研究が鍵"}[gy.element] || "バランスよく要素を活かす";
+    return `<div class="pill">四柱：社会的キャラ（年柱）</div><p>${line1}</p><ul class="bullet"><li>${tips}</li></ul>`;
   }
-
   function hybridCards(sun, moonName, gy){
     const e = sun?.element || "—";
     const items = [];
-    // 表の顔（太陽×年柱）
     let face = "多面的";
     if(e==="地" && gy.element==="土") face = "落ち着き×堅実（信頼感のある表の顔）";
     if(e==="火" && gy.element==="火") face = "情熱×推進力（牽引役の表の顔）";
     if(e==="風" && gy.element==="金") face = "知性×ロジック（理路整然とした表の顔）";
     if(e==="水" && gy.element==="水") face = "共感×洞察（癒やし系の表の顔）";
-
     items.push(`<li>⭐ 表の顔：${face}</li>`);
-
-    // 内面（月×五行の示唆 — 簡易)
     let inner = "感情の動きは状況次第";
     if(moonName.includes("蟹")) inner = "家族思い・守りの情が深い";
     if(moonName.includes("蠍")) inner = "絆を重んじる・一途";
@@ -219,10 +242,7 @@
     if(moonName.includes("牡牛")) inner = "五感が豊か・安定志向";
     if(moonName.includes("乙女")) inner = "繊細で分析的";
     if(moonName.includes("山羊")) inner = "責任感が強く自制的";
-
     items.push(`<li>💖 内面：${inner}</li>`);
-
-    // 強み（エレメント×五行）
     let strength = "状況把握と適応力";
     if(e==="地") strength = "継続力・形にする力";
     if(e==="火") strength = "突破力・起爆力";
@@ -231,43 +251,52 @@
     if(gy.element==="金") strength += "／ルール運用・審美眼";
     if(gy.element==="木") strength += "／学習と成長スピード";
     items.push(`<li>💡 強み：${strength}</li>`);
-
-    // 課題（簡易）
     let weakness = "バランス配分（休息と集中）";
     if(e==="地") weakness = "変化への腰の重さ";
     if(e==="火") weakness = "衝動・燃え尽き";
     if(e==="風") weakness = "散漫・深掘り不足";
     if(e==="水") weakness = "感情の飲み込みすぎ";
     items.push(`<li>⚠️ 課題：${weakness}</li>`);
-
-    return `<div class="pill">星柱クロス診断</div>
-      <ul class="bullet">${items.join('')}</ul>
-      <p class="muted">※精密版では、四柱の月柱/日柱と西洋の金星/火星・ASC/ハウス・アスペクトを統合します。</p>`;
+    return `<div class="pill">星柱クロス診断</div><ul class="bullet">${items.join('')}</ul><p class="kicker">※精密版では、四柱の月柱/日柱と西洋の金星/火星・ASC/ハウス・アスペクトを統合。</p>`;
   }
 
-  // ===== UI結線
-  document.getElementById('calcBtn').addEventListener('click', ()=>{
-    const dateStr = document.getElementById('birthDate').value;
-    if(!dateStr){ alert('生年月日を入力してください'); return; }
-    const d = new Date(dateStr + "T12:00:00"); // タイムゾーン差の影響を軽減
+  // ===== 共有用テキスト
+  function composeShareText(){
+    const summaryText = document.getElementById('summary').innerText.trim();
+    const westernText = document.getElementById('western').innerText.trim();
+    const easternText = document.getElementById('eastern').innerText.trim();
+    const hybridText  = document.getElementById('hybrid').innerText.trim();
+    return `【星柱術｜性格診断】\n\n${summaryText}\n\n▼西洋性格\n${westernText}\n\n▼四柱性格\n${easternText}\n\n▼星柱クロス診断\n${hybridText}`;
+  }
+  function generateShareLink(){
+    const text = composeShareText();
+    return "https://twitter.com/intent/tweet?text=" + encodeURIComponent(text);
+  }
+  function copyToClipboard(text){
+    navigator.clipboard?.writeText(text).then(()=>showToast('コピーしました')).catch(()=>{
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); showToast('コピーしました');
+    });
+  }
+  function showToast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(()=> t.classList.remove('show'), 1500);
+  }
 
-    // 西洋
+  // ===== 計算
+  function onCalc(){
+    const dateStr = document.getElementById('birthDate').value;
+    if(!dateStr){ showToast('生年月日を入力してください'); return; }
+    const d = new Date(dateStr + "T12:00:00");
     const sun = getSunSign(d);
     const moonName = getMoonSignApprox(d);
-
-    // 四柱（年柱）
     const gy = ganzhiYear(d.getFullYear());
-
-    // 出力
-    const summary = document.getElementById('summary');
-    const western = document.getElementById('western');
-    const eastern = document.getElementById('eastern');
-    const hybrid  = document.getElementById('hybrid');
 
     const place = document.getElementById('birthPlace').value;
     const time  = document.getElementById('birthTime').value;
 
-    summary.innerHTML = `
+    document.getElementById('summary').innerHTML = `
       <div class="tag">${dateStr}</div>
       ${time ? `<div class=\"tag\">${time}</div>` : ``}
       ${place ? `<div class=\"tag\">${place}</div>` : ``}
@@ -275,14 +304,26 @@
       <div class="tag">月（推定）：${moonName}</div>
       <div class="tag">年柱：${gy.label}</div>
     `;
-
-    western.innerHTML = westernCards(sun, moonName);
-    eastern.innerHTML = easternCards(gy);
-    hybrid.innerHTML  = hybridCards(sun, moonName, gy);
+    document.getElementById('western').innerHTML = westernCards(sun, moonName);
+    document.getElementById('eastern').innerHTML = easternCards(gy);
+    document.getElementById('hybrid').innerHTML  = hybridCards(sun, moonName, gy);
 
     const result = document.getElementById('result');
     result.style.display = 'block';
     window.scrollTo({top: result.offsetTop - 10, behavior:'smooth'});
+  }
+
+  // ===== イベント結線
+  document.getElementById('calcBtn').addEventListener('click', onCalc);
+  document.getElementById('resetBtn').addEventListener('click', ()=>{
+    ['birthDate','birthTime','birthPlace'].forEach(id=> document.getElementById(id).value='');
+    document.getElementById('result').style.display='none';
+  });
+  document.getElementById('shareBtn').addEventListener('click', (e)=>{
+    e.preventDefault(); window.open(generateShareLink(),'_blank');
+  });
+  document.getElementById('copyBtn').addEventListener('click', ()=>{
+    copyToClipboard(composeShareText());
   });
 </script>
 </body>
