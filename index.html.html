@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>星柱術｜性格診断MVP（要点カード）</title>
+<style>
+  :root{--accent:#ff7a00;--fg:#222;--muted:#6b7280;--card:#ffffff;--line:#eee}
+  html,body{margin:0;background:#fff;color:var(--fg);font-family:system-ui,-apple-system,"SF Pro Text",Segoe UI,Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif}
+  header{padding:20px 16px;border-bottom:1px solid var(--line);}
+  h1{margin:0;font-size:20px}
+  main{max-width:960px;margin:24px auto;padding:0 16px 64px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:16px 16px 18px;background:var(--card);box-shadow:0 6px 20px rgba(0,0,0,.04);margin:12px 0}
+  .grid{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:760px){.grid{grid-template-columns:1fr 1fr}}
+  label{font-size:12px;color:#555;display:block;margin:0 0 6px}
+  input,select{width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:14px}
+  button{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:12px 18px;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .tag{display:inline-block;background:#fff3eb;color:#b44700;border:1px solid #ffd9bf;border-radius:999px;padding:4px 10px;font-size:12px;margin:0 6px 6px 0}
+  h2{margin:.2em 0 .6em}
+  .kicker{color:var(--muted);font-size:12px;margin-bottom:8px}
+  .pill{display:inline-block;background:#f5f5f5;border-radius:999px;padding:6px 12px;font-size:12px;margin:0 6px 8px 0}
+  .muted{color:var(--muted)}
+  .hl{color:var(--accent);font-weight:700}
+  .cards{display:grid;grid-template-columns:1fr;gap:12px}
+  @media(min-width:880px){.cards{grid-template-columns:1fr 1fr 1fr}}
+  .bullet{margin:6px 0;padding-left:18px}
+  .bullet li{margin:6px 0}
+  .warn{background:#fff8e6;border-left:4px solid #ffcc66;padding:10px 12px;border-radius:8px}
+  footer{padding:24px 16px;border-top:1px solid var(--line);color:#777;font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<header>
+  <h1>星柱術｜性格診断MVP（要点カード）</h1>
+</header>
+<main>
+  <div class="card">
+    <div class="kicker">入力</div>
+    <div class="grid">
+      <div>
+        <label>生年月日</label>
+        <input type="date" id="birthDate" />
+      </div>
+      <div>
+        <label>出生時間（任意）</label>
+        <input type="time" id="birthTime" />
+      </div>
+      <div>
+        <label>出生地（任意・表示用）</label>
+        <input type="text" id="birthPlace" placeholder="例：広島県" />
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button id="calcBtn">性格診断を生成</button>
+      </div>
+    </div>
+    <p class="muted" style="margin-top:8px">※MVP簡易版：太陽星座（西洋）＋月星座（簡易）＋年柱（四柱）で性格の要点カードを表示します。後日、月柱・日柱・金星・火星などを追加予定。</p>
+  </div>
+
+  <div id="result" class="card" style="display:none">
+    <div class="kicker">結果</div>
+    <h2>概要</h2>
+    <div id="summary"></div>
+
+    <div class="cards" style="margin-top:12px">
+      <div class="card">
+        <div class="kicker">西洋性格</div>
+        <div id="western"></div>
+      </div>
+      <div class="card">
+        <div class="kicker">四柱性格</div>
+        <div id="eastern"></div>
+      </div>
+      <div class="card">
+        <div class="kicker">星柱クロス診断（要点）</div>
+        <div id="hybrid"></div>
+      </div>
+    </div>
+
+    <div class="warn" style="margin-top:16px">
+      <strong>ご注意：</strong> 本MVPは簡易ロジックです。月星座は日付レンジによる大まかな推定で、実際の月の移動速度により誤差が出ることがあります。出生時間が分かれば今後の精密版で大幅に精度向上します。
+    </div>
+  </div>
+</main>
+
+<footer>
+  © 星柱術 — 性格診断MVP（要点カード）。今後、四柱の月柱/日柱・金星/火星・大運/トランジットを順次拡張予定。
+</footer>
+
+<script>
+  // ===== 西洋：太陽星座（一般的な日付範囲）
+  const sunSigns = [
+    {name:"牡羊座", from:"03-21", to:"04-19", element:"火"},
+    {name:"牡牛座", from:"04-20", to:"05-20", element:"地"},
+    {name:"双子座", from:"05-21", to:"06-21", element:"風"},
+    {name:"蟹座",   from:"06-22", to:"07-22", element:"水"},
+    {name:"獅子座", from:"07-23", to:"08-22", element:"火"},
+    {name:"乙女座", from:"08-23", to:"09-22", element:"地"},
+    {name:"天秤座", from:"09-23", to:"10-23", element:"風"},
+    {name:"蠍座",   from:"10-24", to:"11-22", element:"水"},
+    {name:"射手座", from:"11-23", to:"12-21", element:"火"},
+    {name:"山羊座", from:"12-22", to:"01-19", element:"地"},
+    {name:"水瓶座", from:"01-20", to:"02-18", element:"風"},
+    {name:"魚座",   from:"02-19", to:"03-20", element:"水"},
+  ];
+  function getSunSign(d){
+    const y = d.getFullYear();
+    const md = (m,dd)=> new Date(`${y}-${m}-${dd}T00:00:00`);
+    for(const s of sunSigns){
+      let from = md(...s.from.split("-"));
+      let to   = md(...s.to.split("-"));
+      if(s.from > s.to){
+        const endThis = md("12","31");
+        const startThis = md("01","01");
+        if(d>=from && d<=endThis) return s;
+        if(d>=startThis && d<=to) return s;
+      } else {
+        if(d>=from && d<=to) return s;
+      }
+    }
+    return null;
+  }
+
+  // ===== 西洋：月星座（簡易・おおよその境界日）
+  // 参考用の概算テーブル（年次差は未反映）—MVP用
+  const moonRanges = [
+    {name:"牡羊座", ranges:[["01-01","01-02"],["01-28","01-30"],["02-24","02-26"],["03-23","03-25"],["04-19","04-21"],["05-16","05-18"],["06-12","06-14"],["07-09","07-11"],["08-05","08-07"],["09-01","09-03"],["09-28","09-30"],["10-25","10-27"],["11-21","11-23"],["12-18","12-20"]]},
+    {name:"牡牛座", ranges:[["01-02","01-04"],["01-30","02-01"],["02-26","02-28"],["03-25","03-27"],["04-21","04-23"],["05-18","05-20"],["06-14","06-16"],["07-11","07-13"],["08-07","08-09"],["09-03","09-05"],["09-30","10-02"],["10-27","10-29"],["11-23","11-25"],["12-20","12-22"]]},
+    // 以降はダミー的に周期を並べる（MVP用）。精密版で置換予定。
+    {name:"双子座", ranges:[["01-04","01-06"],["02-01","02-03"],["02-28","03-01"],["03-27","03-29"],["04-23","04-25"],["05-20","05-22"],["06-16","06-18"],["07-13","07-15"],["08-09","08-11"],["09-05","09-07"],["10-02","10-04"],["10-29","10-31"],["11-25","11-27"],["12-22","12-24"]]},
+    {name:"蟹座",   ranges:[["01-06","01-08"],["02-03","02-05"],["03-01","03-03"],["03-29","03-31"],["04-25","04-27"],["05-22","05-24"],["06-18","06-20"],["07-15","07-17"],["08-11","08-13"],["09-07","09-09"],["10-04","10-06"],["10-31","11-02"],["11-27","11-29"],["12-24","12-26"]]},
+    {name:"獅子座", ranges:[["01-08","01-10"],["02-05","02-07"],["03-03","03-05"],["03-31","04-02"],["04-27","04-29"],["05-24","05-26"],["06-20","06-22"],["07-17","07-19"],["08-13","08-15"],["09-09","09-11"],["10-06","10-08"],["11-02","11-04"],["11-29","12-01"],["12-26","12-28"]]},
+    {name:"乙女座", ranges:[["01-10","01-12"],["02-07","02-09"],["03-05","03-07"],["04-02","04-04"],["04-29","05-01"],["05-26","05-28"],["06-22","06-24"],["07-19","07-21"],["08-15","08-17"],["09-11","09-13"],["10-08","10-10"],["11-04","11-06"],["12-01","12-03"],["12-28","12-30"]]},
+    {name:"天秤座", ranges:[["01-12","01-14"],["02-09","02-11"],["03-07","03-09"],["04-04","04-06"],["05-01","05-03"],["05-28","05-30"],["06-24","06-26"],["07-21","07-23"],["08-17","08-19"],["09-13","09-15"],["10-10","10-12"],["11-06","11-08"],["12-03","12-05"],["12-30","12-31"]]},
+    {name:"蠍座",   ranges:[["01-14","01-16"],["02-11","02-13"],["03-09","03-11"],["04-06","04-08"],["05-03","05-05"],["05-30","06-01"],["06-26","06-28"],["07-23","07-25"],["08-19","08-21"],["09-15","09-17"],["10-12","10-14"],["11-08","11-10"],["12-05","12-07"]]},
+    {name:"射手座", ranges:[["01-16","01-18"],["02-13","02-15"],["03-11","03-13"],["04-08","04-10"],["05-05","05-07"],["06-01","06-03"],["06-28","06-30"],["07-25","07-27"],["08-21","08-23"],["09-17","09-19"],["10-14","10-16"],["11-10","11-12"],["12-07","12-09"]]},
+    {name:"山羊座", ranges:[["01-18","01-20"],["02-15","02-17"],["03-13","03-15"],["04-10","04-12"],["05-07","05-09"],["06-03","06-05"],["06-30","07-02"],["07-27","07-29"],["08-23","08-25"],["09-19","09-21"],["10-16","10-18"],["11-12","11-14"],["12-09","12-11"]]},
+    {name:"水瓶座", ranges:[["01-20","01-22"],["02-17","02-19"],["03-15","03-17"],["04-12","04-14"],["05-09","05-11"],["06-05","06-07"],["07-02","07-04"],["07-29","07-31"],["08-25","08-27"],["09-21","09-23"],["10-18","10-20"],["11-14","11-16"],["12-11","12-13"]]},
+    {name:"魚座",   ranges:[["01-22","01-24"],["02-19","02-21"],["03-17","03-19"],["04-14","04-16"],["05-11","05-13"],["06-07","06-09"],["07-04","07-06"],["07-31","08-02"],["08-27","08-29"],["09-23","09-25"],["10-20","10-22"],["11-16","11-18"],["12-13","12-15"]]},
+  ];
+  function inRange(date, start, end){
+    const y = date.getFullYear();
+    const s = new Date(`${y}-${start}T00:00:00`);
+    const e = new Date(`${y}-${end}T23:59:59`);
+    return date>=s && date<=e;
+  }
+  function getMoonSignApprox(d){
+    for(const m of moonRanges){
+      for(const [s,e] of m.ranges){ if(inRange(d,s,e)) return m.name; }
+    }
+    return "（推定不可：精密版で判定）";
+  }
+
+  // ===== 四柱：年柱（干支・簡易）
+  const stems = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+  const branches = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  const stemElement = { "甲":"木","乙":"木","丙":"火","丁":"火","戊":"土","己":"土","庚":"金","辛":"金","壬":"水","癸":"水" };
+  function ganzhiYear(year){
+    const idx = (year - 4) % 60; // 4年=甲子
+    const stem = stems[idx % 10];
+    const branch = branches[idx % 12];
+    return { stem, branch, label: stem + branch, element: stemElement[stem] };
+  }
+
+  // ===== 要点コメント生成
+  function westernCards(sun, moonName){
+    const e = sun?.element || "—";
+    const sunLine = `🌞 太陽：<span class="hl">${sun?sun.name:"不明"}</span>（エレメント：${e}）`;
+    const moonLine = `🌙 月：<span class="hl">${moonName}</span>`;
+    const bullets = [];
+    if(e==="火") bullets.push("行動力と直感を軸に動く");
+    if(e==="地") bullets.push("安定と現実性を重視、形にする力");
+    if(e==="風") bullets.push("知性・対話・ネットワークが得意");
+    if(e==="水") bullets.push("共感力と想像力が豊か");
+    return `<div class="pill">西洋：性格の核</div>
+      <p>${sunLine}<br>${moonLine}</p>
+      <ul class="bullet">${bullets.map(b=>`<li>${b}</li>`).join('')}</ul>`;
+  }
+
+  function easternCards(gy){
+    const line1 = `📅 年柱：<span class="hl">${gy.label}</span>（五行：${gy.element}）`;
+    const tips = {
+      "木":"成長・発展・学びが鍵",
+      "火":"情熱・表現・自己主張が鍵",
+      "土":"安定・調整・継続力が鍵",
+      "金":"規律・審美眼・洗練が鍵",
+      "水":"柔軟・直感・研究が鍵"
+    }[gy.element] || "バランスよく要素を活かす";
+    return `<div class="pill">四柱：社会的キャラ（年柱）</div>
+      <p>${line1}</p>
+      <ul class="bullet"><li>${tips}</li></ul>`;
+  }
+
+  function hybridCards(sun, moonName, gy){
+    const e = sun?.element || "—";
+    const items = [];
+    // 表の顔（太陽×年柱）
+    let face = "多面的";
+    if(e==="地" && gy.element==="土") face = "落ち着き×堅実（信頼感のある表の顔）";
+    if(e==="火" && gy.element==="火") face = "情熱×推進力（牽引役の表の顔）";
+    if(e==="風" && gy.element==="金") face = "知性×ロジック（理路整然とした表の顔）";
+    if(e==="水" && gy.element==="水") face = "共感×洞察（癒やし系の表の顔）";
+
+    items.push(`<li>⭐ 表の顔：${face}</li>`);
+
+    // 内面（月×五行の示唆 — 簡易)
+    let inner = "感情の動きは状況次第";
+    if(moonName.includes("蟹")) inner = "家族思い・守りの情が深い";
+    if(moonName.includes("蠍")) inner = "絆を重んじる・一途";
+    if(moonName.includes("魚")) inner = "共感的・ロマンチスト";
+    if(moonName.includes("牡羊")) inner = "ストレートで熱い";
+    if(moonName.includes("獅子")) inner = "自尊心が高くドラマチック";
+    if(moonName.includes("射手")) inner = "自由志向で楽観的";
+    if(moonName.includes("双子")) inner = "知的好奇心が強く切替が速い";
+    if(moonName.includes("天秤")) inner = "調和志向・人間関係のバランス重視";
+    if(moonName.includes("水瓶")) inner = "独創的・距離感上手";
+    if(moonName.includes("牡牛")) inner = "五感が豊か・安定志向";
+    if(moonName.includes("乙女")) inner = "繊細で分析的";
+    if(moonName.includes("山羊")) inner = "責任感が強く自制的";
+
+    items.push(`<li>💖 内面：${inner}</li>`);
+
+    // 強み（エレメント×五行）
+    let strength = "状況把握と適応力";
+    if(e==="地") strength = "継続力・形にする力";
+    if(e==="火") strength = "突破力・起爆力";
+    if(e==="風") strength = "情報編集・説明力";
+    if(e==="水") strength = "共感・癒し・創作";
+    if(gy.element==="金") strength += "／ルール運用・審美眼";
+    if(gy.element==="木") strength += "／学習と成長スピード";
+    items.push(`<li>💡 強み：${strength}</li>`);
+
+    // 課題（簡易）
+    let weakness = "バランス配分（休息と集中）";
+    if(e==="地") weakness = "変化への腰の重さ";
+    if(e==="火") weakness = "衝動・燃え尽き";
+    if(e==="風") weakness = "散漫・深掘り不足";
+    if(e==="水") weakness = "感情の飲み込みすぎ";
+    items.push(`<li>⚠️ 課題：${weakness}</li>`);
+
+    return `<div class="pill">星柱クロス診断</div>
+      <ul class="bullet">${items.join('')}</ul>
+      <p class="muted">※精密版では、四柱の月柱/日柱と西洋の金星/火星・ASC/ハウス・アスペクトを統合します。</p>`;
+  }
+
+  // ===== UI結線
+  document.getElementById('calcBtn').addEventListener('click', ()=>{
+    const dateStr = document.getElementById('birthDate').value;
+    if(!dateStr){ alert('生年月日を入力してください'); return; }
+    const d = new Date(dateStr + "T12:00:00"); // タイムゾーン差の影響を軽減
+
+    // 西洋
+    const sun = getSunSign(d);
+    const moonName = getMoonSignApprox(d);
+
+    // 四柱（年柱）
+    const gy = ganzhiYear(d.getFullYear());
+
+    // 出力
+    const summary = document.getElementById('summary');
+    const western = document.getElementById('western');
+    const eastern = document.getElementById('eastern');
+    const hybrid  = document.getElementById('hybrid');
+
+    const place = document.getElementById('birthPlace').value;
+    const time  = document.getElementById('birthTime').value;
+
+    summary.innerHTML = `
+      <div class="tag">${dateStr}</div>
+      ${time ? `<div class=\"tag\">${time}</div>` : ``}
+      ${place ? `<div class=\"tag\">${place}</div>` : ``}
+      <div class="tag">太陽：${sun?sun.name:"—"}</div>
+      <div class="tag">月（推定）：${moonName}</div>
+      <div class="tag">年柱：${gy.label}</div>
+    `;
+
+    western.innerHTML = westernCards(sun, moonName);
+    eastern.innerHTML = easternCards(gy);
+    hybrid.innerHTML  = hybridCards(sun, moonName, gy);
+
+    const result = document.getElementById('result');
+    result.style.display = 'block';
+    window.scrollTo({top: result.offsetTop - 10, behavior:'smooth'});
+  });
+</script>
+</body>
+</html>
